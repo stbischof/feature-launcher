@@ -43,7 +43,7 @@
 			"id": "org.apache.felix:org.apache.felix.http.jetty:5.0.4"
 		},
 		{
-			"id": "commons-io:commons-io:2.6"
+			"id": "commons-io:commons-io:2.14.0"
 		},
 		{
 			"id": "commons-fileupload:commons-fileupload:1.5"
