@@ -160,7 +160,7 @@ public class FeatureLauncherImplTest {
 
 		// Verify bundles defined in feature are installed and started
 		Bundle[] bundles = osgiFramework.getBundleContext().getBundles();
-		assertEquals(15, bundles.length);
+		assertEquals(18, bundles.length);
 
 		assertEquals("org.apache.felix.configadmin", bundles[1].getSymbolicName());
 		assertEquals("ACTIVE", BundleStateUtil.getBundleStateString(bundles[1].getState()));
@@ -205,7 +205,7 @@ public class FeatureLauncherImplTest {
 
 		// Verify bundles defined in feature are installed and started
 		Bundle[] bundles = osgiFramework.getBundleContext().getBundles();
-		assertEquals(15, bundles.length);
+		assertEquals(18, bundles.length);
 
 		assertEquals("org.apache.felix.configadmin", bundles[1].getSymbolicName());
 		assertEquals("ACTIVE", BundleStateUtil.getBundleStateString(bundles[1].getState()));
@@ -250,7 +250,7 @@ public class FeatureLauncherImplTest {
 
 		// Verify bundles defined in feature are installed and started
 		Bundle[] bundles = osgiFramework.getBundleContext().getBundles();
-		assertEquals(15, bundles.length);
+		assertEquals(18, bundles.length);
 
 		assertEquals("org.apache.felix.framework", bundles[0].getSymbolicName());
 		assertEquals(Version.parseVersion("7.0.5"), bundles[0].getVersion());

@@ -87,7 +87,7 @@ import org.slf4j.LoggerFactory;
  * @author Michael H. Siemaszko (mhs@into.software)
  * @since Sep 15, 2024
  */
-@Component(configurationPid = "kentyou.featurelauncher.runtime")
+@Component(configurationPid = "osgi.technology.featurelauncher.runtime")
 public class FeatureRuntimeImpl implements FeatureRuntime {
 	private static final Logger LOG = LoggerFactory.getLogger(FeatureRuntimeImpl.class);
 

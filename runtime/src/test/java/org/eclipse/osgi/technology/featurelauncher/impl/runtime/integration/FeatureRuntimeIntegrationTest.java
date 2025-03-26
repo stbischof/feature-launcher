@@ -93,7 +93,7 @@ public class FeatureRuntimeIntegrationTest {
 	Path localCache;
 
 	@BeforeEach
-	public void setUp(@InjectConfiguration(withConfig = @WithConfiguration(pid = "kentyou.featurelauncher.runtime")) Configuration config) throws Exception {
+	public void setUp(@InjectConfiguration(withConfig = @WithConfiguration(pid = "osgi.technology.featurelauncher.runtime")) Configuration config) throws Exception {
 		// Obtain path of dedicated local Maven repository
 		if (System.getProperty(LOCAL_ARTIFACT_REPOSITORY_PATH) == null) {
 			throw new IllegalStateException("Local Maven repository is not defined!");
