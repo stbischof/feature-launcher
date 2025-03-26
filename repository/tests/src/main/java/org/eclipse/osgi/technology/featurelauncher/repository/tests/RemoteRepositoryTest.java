@@ -177,7 +177,7 @@ public abstract class RemoteRepositoryTest extends AbstractRepositoryTest {
 		assertNotNull(remoteRepository);
 		assertTrue(getRemoteRepoImplType().isInstance(remoteRepository));
 
-		ID artifactId = featureService.getIDfromMavenCoordinates("org.apache.felix:org.apache.felix.webconsole:4.8.8");
+		ID artifactId = featureService.getIDfromMavenCoordinates("org.apache.felix:org.apache.felix.webconsole:5.0.10");
 		assertNotNull(artifactId);
 
 		try (JarInputStream jarIs = new JarInputStream(remoteRepository.getArtifactData(artifactId))) {
