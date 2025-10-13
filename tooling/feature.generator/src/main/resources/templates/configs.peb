@@ -1,0 +1,2 @@
+{% import 'common.peb' as common %}
+ {{ common.printComponentJsonConfiguratorSnippet(component, ocds ) }}

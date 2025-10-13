@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,8 +15,10 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
+import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.License;
 import org.apache.maven.plugin.AbstractMojo;
@@ -68,6 +71,10 @@ public class FeatureGeneratorMojo extends AbstractMojo {
 	private static final String OSGI_FEATURE_CAT = "osgi.feature.category";
 
 	private static final Logger logger = LoggerFactory.getLogger(FeatureGeneratorMojo.class);
+
+	@Parameter(defaultValue = "${localRepository}", readonly = true, required = true)
+	@SuppressWarnings("deprecation")
+	private ArtifactRepository localRepository;
 
 	@Parameter(defaultValue = "${project}", readonly = true, required = true)
 	private MavenProject project;
@@ -223,6 +230,9 @@ public class FeatureGeneratorMojo extends AbstractMojo {
 
 			Setting setting = new Setting(outputDirectory, outputFileName, fbs, cs);
 
+			for (FeatureBundleMetadata b : featureBundles) {
+				getLog().warn("Bundle: " + b.id() + " -> " + b.file());
+			}
 			File file = generator.generate(setting, fmd, featureBundles, variables);
 
 			getLog().info("Feature file written to: " + file.toPath().toAbsolutePath());
@@ -320,25 +330,9 @@ public class FeatureGeneratorMojo extends AbstractMojo {
 				}
 				for (Container cont : bndrun.getRunbundles()) {
 
-					getLog().warn(cont.getAttributes().toString());
-					getLog().warn(cont.toString());
-					getLog().warn(cont.getType().toString());
-					getLog().warn(cont.getBundleId().toString());
-					getLog().warn(cont.getProject().toString());
-
-					String groupId = cont.getAttributes().get("maven-groupId");
-					String artifactId = cont.getAttributes().get("maven-artifactId");
-					String version = cont.getAttributes().get("maven-version");
-					getLog().warn(groupId);
-					getLog().warn(groupId);
-					getLog().warn(version);
-
-					groupId = "gid";
-					artifactId = "aid";
-					version = "0.0.0";
-					FeatureBundleMetadata fbm = new FeatureBundleMetadata(
-					        new IDImpl(groupId, artifactId, version, Optional.empty(), Optional.empty()),
-					        cont.getFile(), new HashMap<>());
+					File f = cont.getFile();
+					ID id = parseIDFromPath(f.toPath(), Path.of(localRepository.getBasedir()));
+					FeatureBundleMetadata fbm = new FeatureBundleMetadata(id, cont.getFile(), new HashMap<>());
 					bundles.add(fbm);
 				}
 				return 0;
@@ -388,5 +382,45 @@ public class FeatureGeneratorMojo extends AbstractMojo {
 
 		getLog().info("Resolved artifact file: " + artifactFile);
 		return artifactFile;
+	}
+
+	/**
+	 * Parse a full artifact path such as
+	 * /home/alice/.m2/repository/com/example/demo/2.0.1/demo-2.0.1-sources.jar
+	 */
+	public static ID parseIDFromPath(Path artifactFile, Path localRepoPath) {
+
+		boolean isSubdir = artifactFile.normalize().startsWith(localRepoPath.normalize());
+		if (!isSubdir) {
+			throw new IllegalArgumentException(
+			        "Path is not a subdirectory of the local Maven repository: " + artifactFile);
+		}
+		artifactFile = localRepoPath.relativize(artifactFile);
+		int parts = artifactFile.getNameCount();
+		if (parts < 4) { // need …/<aid>/<ver>/<file>
+			throw new IllegalArgumentException("Path too short for Maven layout: " + artifactFile);
+		}
+
+		// last three meaningful segments
+		String fileName = artifactFile.getFileName().toString();
+		String version = artifactFile.getName(parts - 2).toString();
+		String artifactId = artifactFile.getName(parts - 3).toString();
+
+		// groupId = every segment before artifactId, joined with '.'
+		StringJoiner group = new StringJoiner(".");
+		for (int i = 0; i < parts - 3; i++) {
+			group.add(artifactFile.getName(i).toString());
+		}
+		String groupId = group.toString();
+
+		// ----- classify and type -----
+		int dot = fileName.lastIndexOf('.');
+		String type = (dot >= 0) ? fileName.substring(dot + 1) : null;
+		String base = (dot >= 0) ? fileName.substring(0, dot) : fileName;
+
+		String prefix = artifactId + "-" + version; // mandatory prefix
+		String classifier = (base.length() > prefix.length() + 1) ? base.substring(prefix.length() + 1) : null;
+
+		return new IDImpl(groupId, artifactId, version, Optional.ofNullable(type), Optional.ofNullable(classifier));
 	}
 }
