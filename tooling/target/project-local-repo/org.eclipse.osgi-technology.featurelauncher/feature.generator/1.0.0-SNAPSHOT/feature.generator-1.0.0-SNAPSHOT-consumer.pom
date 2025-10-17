@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.eclipse.osgi-technology.featurelauncher</groupId>
+  <artifactId>feature.generator</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <url>https://github.com/eclipse-osgi-technology/feature-launcher/tooling/feature.generator</url>
+  <dependencies>
+    <dependency>
+      <groupId>io.pebbletemplates</groupId>
+      <artifactId>pebble</artifactId>
+      <version>3.2.4</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>biz.aQute.bnd</groupId>
+      <artifactId>biz.aQute.bnd.reporter</artifactId>
+      <version>7.2.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.service.feature</artifactId>
+      <version>1.0.0</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+  <repositories>
+    <repository>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <id>bnd-snapshots</id>
+      <url>https://bndtools.jfrog.io/bndtools/libs-snapshot/</url>
+    </repository>
+    <repository>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>ossrh</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+    <repository>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>apache-snapshots</id>
+      <name>Apache Snapshots</name>
+      <url>https://repository.apache.org/snapshots/</url>
+    </repository>
+  </repositories>
+</project>
