@@ -78,6 +78,12 @@
 			<artifactId>picocli</artifactId>
 		</dependency>
 		
+		<dependency>
+			<groupId>org.eclipse.osgi-technology.featurelauncher.extensions</groupId>
+			<artifactId>hash.checker</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<!-- These are nested for second stage launch-->
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -141,6 +147,7 @@
 									<include>info.picocli:picocli</include>
 									<include>org.eclipse.osgi-technology.featurelauncher.featureservice:base</include>
 									<include>com.grack:nanojson</include>
+									<include>org.eclipse.osgi-technology.featurelauncher.extensions:hash.checker</include>
 									<include>org.glassfish:jakarta.json</include>
 									<include>org.osgi:org.osgi.service.feature</include>
 									<include>org.osgi:org.osgi.service.featurelauncher</include>

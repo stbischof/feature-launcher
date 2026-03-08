@@ -79,6 +79,11 @@
       <artifactId>nanojson</artifactId>
       <version>1.10</version>
     </dependency>
+		<dependency>
+			<groupId>org.eclipse.osgi-technology.featurelauncher.extensions</groupId>
+			<artifactId>hash.checker</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<!-- default OSGi framework -->
 <!--		<dependency>
@@ -135,6 +140,7 @@
 									<include>org.eclipse.osgi-technology.featurelauncher.launch:spi</include>
                   <include>org.eclipse.osgi-technology.featurelauncher.featureservice:base</include>
                   <include>com.grack:nanojson</include>
+									<include>org.eclipse.osgi-technology.featurelauncher.extensions:hash.checker</include>
 									<include>org.osgi:org.osgi.service.feature</include>
 									<include>org.osgi:org.osgi.service.featurelauncher</include>
 									<include>org.slf4j:slf4j-api</include>
