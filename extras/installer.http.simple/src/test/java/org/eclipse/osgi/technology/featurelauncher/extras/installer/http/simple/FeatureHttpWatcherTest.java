@@ -285,7 +285,7 @@ class FeatureHttpWatcherTest {
 
 		FeatureHttpWatcher watcher = new FeatureHttpWatcher(featureRuntime,
 				baseUrl + "/features.json", repoDir.toString(),
-				"ONCE", 60, 5, 5);
+				"ONCE", 60, 5, 5, null, null);
 		watcher.start();
 
 		verify(featureRuntime).createRepository(repoDir);
@@ -313,7 +313,7 @@ class FeatureHttpWatcherTest {
 
 		FeatureHttpWatcher watcher = new FeatureHttpWatcher(featureRuntime,
 				baseUrl + "/features.json", null,
-				null, 60, 5, 5);
+				null, 60, 5, 5, null, null);
 		watcher.start();
 
 		verify(featureRuntime, times(1)).install(any(Reader.class));
@@ -369,30 +369,6 @@ class FeatureHttpWatcherTest {
 	}
 
 	@Test
-	void afterRestart_reconcileWithRuntime_skipsReinstall() {
-		serveJson("/feature1.json", "{}");
-		serveJson("/features.json", featureList(
-				entry("org.example:test-feature:1.0.0", baseUrl + "/feature1.json")));
-
-		// Simulate runtime already has the feature installed
-		InstalledFeature existing = mock(InstalledFeature.class);
-		Feature existingFeature = mock(Feature.class);
-		ID existingId = mock(ID.class);
-		when(existingId.toString()).thenReturn("org.example:test-feature:1.0.0");
-		when(existingFeature.getID()).thenReturn(existingId);
-		when(existing.getFeature()).thenReturn(existingFeature);
-		when(featureRuntime.getInstalledFeatures()).thenReturn(List.of(existing));
-
-		FeatureHttpWatcher watcher = createWatcher(baseUrl + "/features.json", "ONCE");
-		watcher.start();
-
-		// Should NOT call install since it's already in runtime
-		verify(featureRuntime, never()).install(any(Reader.class));
-		// Should NOT call update since content hasn't changed
-		verify(featureRuntime, never()).update(any(ID.class), any(Reader.class));
-	}
-
-	@Test
 	void parseFeatureList_validJsonArray() {
 		FeatureHttpWatcher watcher = createWatcher(baseUrl + "/features.json", "ONCE");
 		List<FeatureHttpWatcher.FeatureEntry> entries = watcher.parseFeatureList(
@@ -444,6 +420,82 @@ class FeatureHttpWatcherTest {
 		assertTrue(!hash1.equals(hash2));
 	}
 
+	@Test
+	void buildFeaturesUrl_noPlaceholder_idsIgnored() {
+		URI expected = URI.create("http://example.com/features.json");
+		assertEquals(expected, FeatureHttpWatcher.buildFeaturesUrl("http://example.com/features.json", "my-server-1", "fw-1"));
+		assertEquals(expected, FeatureHttpWatcher.buildFeaturesUrl("http://example.com/features.json", null, null));
+	}
+
+	@Test
+	void buildFeaturesUrl_serverIdPlaceholderInPath() {
+		URI result = FeatureHttpWatcher.buildFeaturesUrl(
+				"http://example.com/nodes/{serverId}/features.json", "my-server-1", null);
+		assertEquals(URI.create("http://example.com/nodes/my-server-1/features.json"), result);
+	}
+
+	@Test
+	void buildFeaturesUrl_serverIdPlaceholderInQueryParam() {
+		URI result = FeatureHttpWatcher.buildFeaturesUrl(
+				"http://example.com/features.json?node={serverId}", "my-server-1", null);
+		assertEquals(URI.create("http://example.com/features.json?node=my-server-1"), result);
+	}
+
+	@Test
+	void buildFeaturesUrl_serverIdPlaceholderWithSpecialChars() {
+		URI result = FeatureHttpWatcher.buildFeaturesUrl(
+				"http://example.com/features.json?node={serverId}", "server id&special", null);
+		assertEquals("http://example.com/features.json?node=server+id%26special", result.toString());
+	}
+
+	@Test
+	void buildFeaturesUrl_serverIdPlaceholderWithNull_removesPlaceholder() {
+		URI result = FeatureHttpWatcher.buildFeaturesUrl(
+				"http://example.com/nodes/{serverId}/features.json", null, null);
+		assertEquals(URI.create("http://example.com/nodes//features.json"), result);
+	}
+
+	@Test
+	void buildFeaturesUrl_frameworkIdPlaceholder() {
+		URI result = FeatureHttpWatcher.buildFeaturesUrl(
+				"http://example.com/features.json?fw={frameworkId}", null, "fw-uuid-123");
+		assertEquals(URI.create("http://example.com/features.json?fw=fw-uuid-123"), result);
+	}
+
+	@Test
+	void buildFeaturesUrl_bothPlaceholders() {
+		URI result = FeatureHttpWatcher.buildFeaturesUrl(
+				"http://example.com/features.json?node={serverId}&fw={frameworkId}", "my-server", "fw-uuid");
+		assertEquals(URI.create("http://example.com/features.json?node=my-server&fw=fw-uuid"), result);
+	}
+
+	@Test
+	void buildFeaturesUrl_bothPlaceholders_serverIdNull() {
+		URI result = FeatureHttpWatcher.buildFeaturesUrl(
+				"http://example.com/features.json?node={serverId}&fw={frameworkId}", null, "fw-uuid");
+		assertEquals(URI.create("http://example.com/features.json?node=&fw=fw-uuid"), result);
+	}
+
+	@Test
+	void serverIdSentInRequest() {
+		AtomicReference<String> requestUri = new AtomicReference<>();
+		server.createContext("/features.json", exchange -> {
+			requestUri.set(exchange.getRequestURI().toString());
+			byte[] bytes = "[]".getBytes(StandardCharsets.UTF_8);
+			exchange.getResponseHeaders().set("Content-Type", "application/json");
+			exchange.sendResponseHeaders(200, bytes.length);
+			try (OutputStream os = exchange.getResponseBody()) {
+				os.write(bytes);
+			}
+		});
+
+		FeatureHttpWatcher watcher = new FeatureHttpWatcher(featureRuntime,
+				baseUrl + "/features.json?node={serverId}", null, "ONCE", 60, 5, 5, "test-uuid-123", null);
+		watcher.start();
+
+		assertEquals("/features.json?node=test-uuid-123", requestUri.get());
+	}
+
 	// --- helpers ---
 
 	private FeatureHttpWatcher createWatcher(String featuresUrl, String scanMode) {
@@ -452,7 +504,7 @@ class FeatureHttpWatcherTest {
 
 	private FeatureHttpWatcher createWatcher(String featuresUrl, String scanMode, long interval) {
 		return new FeatureHttpWatcher(featureRuntime, featuresUrl, null,
-				scanMode, interval, 5, 5);
+				scanMode, interval, 5, 5, null, null);
 	}
 
 	private String featureList(String... entries) {

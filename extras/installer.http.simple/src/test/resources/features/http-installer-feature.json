@@ -10,9 +10,10 @@
       "kind": "mandatory",
       "type": "json",
       "json": {
-        "osgi.technology.featurelauncher.extras.installer.http.simple.features.url": "https://example.com/features.json",
+        "osgi.technology.featurelauncher.extras.installer.http.simple.features.url": "https://example.com/features.json?node={serverId}",
         "osgi.technology.featurelauncher.extras.installer.http.simple.repo.dir": "/app/storage/repo",
-        "osgi.technology.featurelauncher.extras.installer.http.simple.scan.mode": "ONCE"
+        "osgi.technology.featurelauncher.extras.installer.http.simple.scan.mode": "ONCE",
+        "osgi.technology.featurelauncher.extras.installer.http.simple.server.id": "my-custom-server-id"
       }
     }
   }

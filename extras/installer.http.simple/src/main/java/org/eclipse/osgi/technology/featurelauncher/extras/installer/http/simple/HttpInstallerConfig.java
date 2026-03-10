@@ -35,6 +35,7 @@ interface HttpInstallerConfig {
 	String PROP_SCAN_INTERVAL = PROP_PREFIX + "scan.interval";
 	String PROP_CONNECT_TIMEOUT = PROP_PREFIX + "connect.timeout";
 	String PROP_REQUEST_TIMEOUT = PROP_PREFIX + "request.timeout";
+	String PROP_SERVER_ID = PROP_PREFIX + "server.id";
 
 	long DEFAULT_SCAN_INTERVAL = 60;
 	String DEFAULT_SCAN_MODE = "ONCE";
@@ -42,7 +43,10 @@ interface HttpInstallerConfig {
 	long DEFAULT_REQUEST_TIMEOUT = 60;
 
 	@AttributeDefinition(name = "Features URL",
-		description = "HTTP URL that returns a JSON array of feature objects with id and url, e.g. [{\"id\":\"g:a:v\",\"url\":\"http://...\"}]")
+		description = "HTTP URL that returns a JSON array of feature objects with id and url, e.g. [{\"id\":\"g:a:v\",\"url\":\"http://...\"}]. "
+			+ "Use {serverId} to insert the custom server ID and/or {frameworkId} to insert the OSGi framework UUID (org.osgi.framework.uuid) anywhere in the URL, "
+			+ "e.g. http://host/features?node={serverId}&fw={frameworkId}. "
+			+ "If no placeholder is present, neither value is used.")
 	String features_url();
 
 	@AttributeDefinition(name = "Repository Directory",
@@ -76,4 +80,9 @@ interface HttpInstallerConfig {
 		required = false, defaultValue = "60",
 		type = AttributeType.LONG)
 	long request_timeout();
+
+	@AttributeDefinition(name = "Server ID",
+		description = "Custom server identifier used to replace the {serverId} placeholder in the features URL.",
+		required = false)
+	String server_id();
 }

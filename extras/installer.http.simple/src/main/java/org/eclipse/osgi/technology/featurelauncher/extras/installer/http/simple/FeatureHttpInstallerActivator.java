@@ -35,6 +35,7 @@ public class FeatureHttpInstallerActivator implements BundleActivator {
 	static final String PROP_SCAN_INTERVAL = HttpInstallerConfig.PROP_SCAN_INTERVAL;
 	static final String PROP_CONNECT_TIMEOUT = HttpInstallerConfig.PROP_CONNECT_TIMEOUT;
 	static final String PROP_REQUEST_TIMEOUT = HttpInstallerConfig.PROP_REQUEST_TIMEOUT;
+	static final String PROP_SERVER_ID = HttpInstallerConfig.PROP_SERVER_ID;
 
 	static final long DEFAULT_SCAN_INTERVAL = HttpInstallerConfig.DEFAULT_SCAN_INTERVAL;
 	static final long DEFAULT_CONNECT_TIMEOUT = HttpInstallerConfig.DEFAULT_CONNECT_TIMEOUT;
@@ -52,12 +53,17 @@ public class FeatureHttpInstallerActivator implements BundleActivator {
 		long connectTimeout = parseLong(context.getProperty(PROP_CONNECT_TIMEOUT), DEFAULT_CONNECT_TIMEOUT);
 		long requestTimeout = parseLong(context.getProperty(PROP_REQUEST_TIMEOUT), DEFAULT_REQUEST_TIMEOUT);
 
+		String serverId = context.getProperty(PROP_SERVER_ID);
+		String frameworkId = context.getProperty(Constants.FRAMEWORK_UUID);
+
 		LOG.info("Configuration: {}={}", PROP_FEATURES_URL, featuresUrl);
 		LOG.info("Configuration: {}={}", PROP_REPO_DIR, repoDir);
 		LOG.info("Configuration: {}={}", PROP_SCAN_MODE, scanMode);
 		LOG.info("Configuration: {}={}", PROP_SCAN_INTERVAL, interval);
 		LOG.info("Configuration: {}={}", PROP_CONNECT_TIMEOUT, connectTimeout);
 		LOG.info("Configuration: {}={}", PROP_REQUEST_TIMEOUT, requestTimeout);
+		LOG.info("Configuration: {}={}", PROP_SERVER_ID, serverId);
+		LOG.info("Configuration: {}={}", Constants.FRAMEWORK_UUID, frameworkId);
 
 		if (featuresUrl == null || featuresUrl.isEmpty()) {
 			LOG.warn("No features URL configured ({} is not set)", PROP_FEATURES_URL);
@@ -74,7 +80,7 @@ public class FeatureHttpInstallerActivator implements BundleActivator {
 				if (runtime != null) {
 					LOG.info("FeatureRuntime service available, starting HTTP watcher");
 					FeatureHttpWatcher watcher = new FeatureHttpWatcher(runtime, featuresUrl, repoDir, scanMode,
-							interval, connectTimeout, requestTimeout);
+							interval, connectTimeout, requestTimeout, serverId, frameworkId);
 					watcher.start();
 					return watcher;
 				}
