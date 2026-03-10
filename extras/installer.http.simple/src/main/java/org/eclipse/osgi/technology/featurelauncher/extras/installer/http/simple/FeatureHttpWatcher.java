@@ -11,6 +11,7 @@ package org.eclipse.osgi.technology.featurelauncher.extras.installer.http.simple
 
 import java.io.StringReader;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -91,9 +92,9 @@ class FeatureHttpWatcher {
 
 	FeatureHttpWatcher(FeatureRuntime featureRuntime, String featuresUrl, String repoDir,
 			String scanMode, long intervalSeconds, long connectTimeoutSeconds,
-			long requestTimeoutSeconds) {
+			long requestTimeoutSeconds, String serverId, String frameworkId) {
 		this.featureRuntime = featureRuntime;
-		this.featuresUrl = URI.create(featuresUrl);
+		this.featuresUrl = buildFeaturesUrl(featuresUrl, serverId, frameworkId);
 		this.repoDir = repoDir != null && !repoDir.isEmpty() ? Paths.get(repoDir) : null;
 		this.scanMode = ScanMode.fromString(scanMode);
 		this.intervalSeconds = intervalSeconds > 0 ? intervalSeconds
@@ -424,6 +425,25 @@ class FeatureHttpWatcher {
 		} catch (Exception e) {
 			throw new RuntimeException("SHA-256 not available", e);
 		}
+	}
+
+	static final String SERVER_ID_PLACEHOLDER = "{serverId}";
+	static final String FRAMEWORK_ID_PLACEHOLDER = "{frameworkId}";
+
+	static URI buildFeaturesUrl(String baseUrl, String serverId, String frameworkId) {
+		String url = replacePlaceholder(baseUrl, SERVER_ID_PLACEHOLDER, serverId);
+		url = replacePlaceholder(url, FRAMEWORK_ID_PLACEHOLDER, frameworkId);
+		return URI.create(url);
+	}
+
+	private static String replacePlaceholder(String url, String placeholder, String value) {
+		if (!url.contains(placeholder)) {
+			return url;
+		}
+		if (value == null || value.isEmpty()) {
+			return url.replace(placeholder, "");
+		}
+		return url.replace(placeholder, URLEncoder.encode(value, StandardCharsets.UTF_8));
 	}
 
 	private record TrackedFeature(ID featureId, String contentHash, URI url) {
